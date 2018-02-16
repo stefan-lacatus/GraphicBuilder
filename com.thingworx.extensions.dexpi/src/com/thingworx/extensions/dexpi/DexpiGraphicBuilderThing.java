@@ -10,6 +10,7 @@ import org.dexpi.pid.imaging.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
@@ -70,22 +71,20 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
 
         final Path tempFilePath = Paths.get(String.format("tmp%d.xml", Instant.now().toEpochMilli()));
 
-        Files.write(tempFilePath, data);
-
         // Building image from xmlFile:
 
         int resolutionX = 6000;
 
         JaxbErrorLogRepository errorRep = new JaxbErrorLogRepository(tempFilePath.toFile());
-        InputRepository inputRep = new JaxbInputRepository(tempFilePath.toFile());
+        InputRepository inputRep = new JaxbInputRepository(new ByteArrayInputStream(data));
         if(USE_DEXPI_IMPL) {
             GraphicFactory gFac = new ImageFactorySvg();
             GraphicBuilder gBuilder = new GraphicBuilder(inputRep, gFac, errorRep);
 
-            gBuilder.buildImage(resolutionX, "test.svg");
+            gBuilder.buildImage(resolutionX, null);
 
             logger.info("Generator finished.");
-            return Files.readAllBytes(Paths.get("test.svg"));
+            return ((ImageFactorySvg) gFac).getImageSvg().toByteArray();
         } else {
             StringWriter writer = new StringWriter();
 
