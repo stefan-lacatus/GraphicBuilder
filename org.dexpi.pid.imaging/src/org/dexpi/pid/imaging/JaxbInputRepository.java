@@ -112,7 +112,7 @@ public class JaxbInputRepository implements InputRepository {
      * @throws FileNotFoundException
      * @throws XMLStreamException
      */
-	public JaxbInputRepository(InputStream stream)  throws JAXBException, FileNotFoundException, XMLStreamException {
+	public JaxbInputRepository(InputStream stream) throws JAXBException, IOException, XMLStreamException {
         int lines = 0;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             while (reader.readLine() != null)
@@ -120,12 +120,12 @@ public class JaxbInputRepository implements InputRepository {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        stream.reset();
 
         // create JAXB context
         JAXBContext jaxbContext = JAXBContext.newInstance(PlantModel.class);
         XMLInputFactory xif = XMLInputFactory.newFactory();
-        StreamSource source = new StreamSource(stream);
-        XMLStreamReader xsr = xif.createXMLStreamReader(source);
+        XMLStreamReader xsr = xif.createXMLStreamReader(stream);
 
         // create list of locatorElements
         xsr = new StreamReaderDelegate(xsr) {
@@ -155,8 +155,9 @@ public class JaxbInputRepository implements InputRepository {
         unmarshaller.setListener(ll);
 
         unmarshaller.unmarshal(xsr);
+        stream.reset();
         // this will create Java object from the XML file
-        this.plantModel = (PlantModel) unmarshaller.unmarshal(source);
+        this.plantModel = (PlantModel) unmarshaller.unmarshal(stream);
 
         // throw error IFF plantModel is null ('cause marshalling went
         // terribly wrong!)
@@ -170,7 +171,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * creates java objects from xml
-	 * 
+	 *
 	 * @param file
 	 *            the xml-File to be drawn
 	 * @throws JAXBException
@@ -180,7 +181,7 @@ public class JaxbInputRepository implements InputRepository {
 	 * @throws XMLStreamException
 	 *             exception thrown
 	 */
-	public JaxbInputRepository(File file) throws JAXBException, FileNotFoundException, XMLStreamException {
+	public JaxbInputRepository(File file) throws JAXBException, IOException, XMLStreamException {
         this(new FileInputStream(file));
 	}
 
@@ -284,7 +285,7 @@ public class JaxbInputRepository implements InputRepository {
 	/**
 	 * sets the basic parameters of the drawing: zero point and size,
 	 * backgroundcolor, drawing, shapecatalogue
-	 * 
+	 *
 	 */
 	@Override
 	public void init() {
@@ -321,7 +322,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * loops through the xml-structure and handles every occuring annotationItem
-	 * 
+	 *
 	 */
 	@Override
 	public ArrayList<PidElement> getAnnotationItems() {
@@ -357,7 +358,7 @@ public class JaxbInputRepository implements InputRepository {
 	 * creates a PidElement corresponding to the annotationItem, initializes its
 	 * basic attributes and adds it to the listOfAnnotationItems after graphic
 	 * elements have been added
-	 * 
+	 *
 	 * @param annotationItem
 	 *            the item whose attributes and graphic elements get transfered to
 	 *            the pidElement
@@ -375,7 +376,7 @@ public class JaxbInputRepository implements InputRepository {
 	 * creates a PidElement corresponding to the plantItem, initializes its basic
 	 * attributes and adds it to the listOfPlantItems after graphic elements have
 	 * been added
-	 * 
+	 *
 	 * @param plantItem
 	 *            the item whose attributes and graphic elements get transfered to
 	 *            the pidElement
@@ -455,7 +456,7 @@ public class JaxbInputRepository implements InputRepository {
 	/**
 	 * handles (create PidElement, add graphics) centerLines and adds them to the
 	 * listOfPiping
-	 * 
+	 *
 	 * @param object
 	 *            a CenterLine
 	 */
@@ -517,7 +518,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * gets the corresponding PlantItem to the itemId
-	 * 
+	 *
 	 * @param itemID
 	 *            the itemID of the textElement
 	 * @return the PlantItem that corresponds to the itemID *
@@ -548,7 +549,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * filters the list of all subelements for AnnotationItems and returns them
-	 * 
+	 *
 	 * @param plantItem
 	 *            the plantItem whose subelements should be returned
 	 * @return list of all subelements of the plantItem that are AnnotationItems
@@ -564,7 +565,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * filters the list of all subelements for PlantItems and returns them
-	 * 
+	 *
 	 * @param plantItem
 	 *            the plantItem whose subelements should be returned
 	 * @return list of all subelements of the plantItem that are PlantItems
@@ -580,7 +581,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * gets all subelements of a given plantItem
-	 * 
+	 *
 	 * @param plantItem
 	 *            the plantItem whose subelements should be returned
 	 * @return all subelements of the given plantItem
@@ -934,7 +935,7 @@ public class JaxbInputRepository implements InputRepository {
 	/**
 	 *
 	 * loops through the xml-structure and handles every occuring plantItem
-	 * 
+	 *
 	 */
 	@Override
 	public ArrayList<PidElement> getPlantItems() {
@@ -1172,7 +1173,7 @@ public class JaxbInputRepository implements InputRepository {
 
 	/**
 	 * adds curves (line, polyLine, circle etc) to the drawableElements
-	 * 
+	 *
 	 * @param jaxbElement
 	 *            the Curve
 	 * @return ArrayList of drawableElements
@@ -1452,7 +1453,7 @@ public class JaxbInputRepository implements InputRepository {
 	/**
 	 * checks the dependantAttribute of a text, looks for the corresponding
 	 * genericAttributes and composes a string
-	 * 
+	 *
 	 * @param plantItem
 	 *            the plantItem with the corresponding ID to the texts ItemID
 	 * @param text
@@ -1636,7 +1637,7 @@ public class JaxbInputRepository implements InputRepository {
 	/**
 	 * checks if unit should be included in the string and abbreviates some of them
 	 * according to the SI standard
-	 * 
+	 *
 	 * @param genericAttribute
 	 * @param text
 	 * @return
@@ -1804,7 +1805,7 @@ public class JaxbInputRepository implements InputRepository {
 	/**
 	 * in case the shapeCatalogue is referenced, the position, reference, and scale
 	 * of a pidElement is set here
-	 * 
+	 *
 	 * @param plantItem
 	 *            the plantItem
 	 * @param pidElement
