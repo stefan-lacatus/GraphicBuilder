@@ -1,4 +1,4 @@
-package com.thingworx.extensions.dexpi;
+package com.thingworx.extensions.dexpi.old;
 
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;

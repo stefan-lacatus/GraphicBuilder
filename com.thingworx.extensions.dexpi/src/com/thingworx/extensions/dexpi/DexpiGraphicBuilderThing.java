@@ -2,6 +2,7 @@ package com.thingworx.extensions.dexpi;
 
 import com.thingworx.communications.client.ConnectedThingClient;
 import com.thingworx.communications.client.things.VirtualThing;
+import com.thingworx.extensions.dexpi.old.SvgImageFactory;
 import com.thingworx.metadata.annotations.ThingworxServiceDefinition;
 import com.thingworx.metadata.annotations.ThingworxServiceParameter;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
@@ -65,7 +66,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
             name = "result", description = "", baseType = "BLOB")
     public byte[] GenerateSvgForFile(@ThingworxServiceParameter(
             name = "data", description = "", baseType = "BLOB") byte[] data) throws Exception {
-        logger.info("Starting Tester for Graphic Builder.");
+        logger.info("Starting generator for Graphic Builder.");
 
         final Path tempFilePath = Paths.get(String.format("tmp%d.xml", Instant.now().toEpochMilli()));
 
@@ -78,14 +79,12 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         JaxbErrorLogRepository errorRep = new JaxbErrorLogRepository(tempFilePath.toFile());
         InputRepository inputRep = new JaxbInputRepository(tempFilePath.toFile());
         if(USE_DEXPI_IMPL) {
-            GraphicFactory gFac = new ImageFactory_SVG();
+            GraphicFactory gFac = new ImageFactorySvg();
             GraphicBuilder gBuilder = new GraphicBuilder(inputRep, gFac, errorRep);
 
             gBuilder.buildImage(resolutionX, "test.svg");
-            logger.info(gBuilder.generateHTMLimageMap("TestImageMap"));
 
-
-            logger.info("Tester finished.");
+            logger.info("Generator finished.");
             return Files.readAllBytes(Paths.get("test.svg"));
         } else {
             StringWriter writer = new StringWriter();
