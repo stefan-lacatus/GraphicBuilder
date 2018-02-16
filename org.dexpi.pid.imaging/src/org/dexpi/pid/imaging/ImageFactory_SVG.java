@@ -74,7 +74,7 @@ public class ImageFactory_SVG implements GraphicFactory {
 
 	private DOMImplementation impl;
 	private String svgNS, dexpiNS, dexpiPrefix;
-	private Document doc;
+	protected Document doc;
 	private Element svgRoot;
 
 	private double x, x0, y0; // scale factor(drawing), base coordinates(global)
