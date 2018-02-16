@@ -1,12 +1,7 @@
 package org.dexpi.pid.imaging;
 
 import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
@@ -110,6 +105,69 @@ public class JaxbInputRepository implements InputRepository {
 
 	public Locator locator = new Locator();
 
+    /**
+     * Creates a java objects from the dexpi xml
+     * @param stream an input stream with the dexpi data
+     * @throws JAXBException
+     * @throws FileNotFoundException
+     * @throws XMLStreamException
+     */
+	public JaxbInputRepository(InputStream stream)  throws JAXBException, FileNotFoundException, XMLStreamException {
+        int lines = 0;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+            while (reader.readLine() != null)
+                ++lines;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // create JAXB context
+        JAXBContext jaxbContext = JAXBContext.newInstance(PlantModel.class);
+        XMLInputFactory xif = XMLInputFactory.newFactory();
+        StreamSource source = new StreamSource(stream);
+        XMLStreamReader xsr = xif.createXMLStreamReader(source);
+
+        // create list of locatorElements
+        xsr = new StreamReaderDelegate(xsr) {
+            @Override
+            public java.lang.String getLocalName() {
+                java.lang.String localName = super.getLocalName();
+                if (isStartElement()) {
+                    java.lang.String id = "";
+                    for (int i = 0; i < this.getAttributeCount(); i++) {
+                        if (this.getAttributeLocalName(i).equals("ID")) {
+                            id = this.getAttributeValue(i);
+                        }
+                    }
+
+                    JaxbInputRepository.this.locator.addElement(localName, id, this.getLocation().getLineNumber());
+                }
+                return localName;
+            }
+        };
+        // sorts list (ascending by linenumber)
+        this.locator.sortList();
+
+        // initialize Marshaller
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+        LocationListener ll = new LocationListener(xsr, lines, this.listOfErrors);
+        unmarshaller.setListener(ll);
+
+        unmarshaller.unmarshal(xsr);
+        // this will create Java object from the XML file
+        this.plantModel = (PlantModel) unmarshaller.unmarshal(source);
+
+        // throw error IFF plantModel is null ('cause marshalling went
+        // terribly wrong!)
+        if (this.plantModel == null) {
+            ErrorElement eE = new ErrorElement("0");
+            eE.setDescription("Marshalling went terribly wrong!");
+            this.listOfErrors.add(eE);
+        } else
+            init();
+    }
+
 	/**
 	 * creates java objects from xml
 	 * 
@@ -123,60 +181,7 @@ public class JaxbInputRepository implements InputRepository {
 	 *             exception thrown
 	 */
 	public JaxbInputRepository(File file) throws JAXBException, FileNotFoundException, XMLStreamException {
-
-		int lines = 0;
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			while (reader.readLine() != null)
-				++lines;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// create JAXB context
-		JAXBContext jaxbContext = JAXBContext.newInstance(PlantModel.class);
-		XMLInputFactory xif = XMLInputFactory.newFactory();
-		StreamSource source = new StreamSource(file);
-		XMLStreamReader xsr = xif.createXMLStreamReader(source);
-
-		// create list of locatorElements
-		xsr = new StreamReaderDelegate(xsr) {
-			@Override
-			public java.lang.String getLocalName() {
-				java.lang.String localName = super.getLocalName();
-				if (isStartElement()) {
-					java.lang.String id = "";
-					for (int i = 0; i < this.getAttributeCount(); i++) {
-						if (this.getAttributeLocalName(i).equals("ID")) {
-							id = this.getAttributeValue(i);
-						}
-					}
-
-					JaxbInputRepository.this.locator.addElement(localName, id, this.getLocation().getLineNumber());
-				}
-				return localName;
-			}
-		};
-		// sorts list (ascending by linenumber)
-		this.locator.sortList();
-
-		// initialize Marshaller
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-
-		LocationListener ll = new LocationListener(xsr, lines, this.listOfErrors);
-		unmarshaller.setListener(ll);
-
-		unmarshaller.unmarshal(xsr);
-		// this will create Java object from the XML file
-		this.plantModel = (PlantModel) unmarshaller.unmarshal(source);
-
-		// throw error IFF plantModel is null ('cause marshalling went
-		// terribly wrong!)
-		if (this.plantModel == null) {
-			ErrorElement eE = new ErrorElement("0");
-			eE.setDescription("Marshalling went terribly wrong!");
-			this.listOfErrors.add(eE);
-		} else
-			init();
+        this(new FileInputStream(file));
 	}
 
 	/*
