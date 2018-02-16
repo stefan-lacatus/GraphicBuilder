@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import org.dexpi.pid.imaging.pidElements.ErrorElement;
 import org.dexpi.pid.imaging.pidElements.PidElement;
+import org.dexpi.pid.xml.PlantModel;
 
 public interface InputRepository {
 
@@ -56,6 +57,7 @@ public interface InputRepository {
 	 */
 	public Locator getLocator();
 
+	public PlantModel getPlantModel();
 	/**
 	 * 
 	 * @return all piping-related pidElements

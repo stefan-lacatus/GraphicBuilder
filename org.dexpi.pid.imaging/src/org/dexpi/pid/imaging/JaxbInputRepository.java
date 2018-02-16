@@ -1835,7 +1835,11 @@ public class JaxbInputRepository implements InputRepository {
 		return this.locator;
 	}
 
-	@Override
+    public PlantModel getPlantModel() {
+        return plantModel;
+    }
+
+    @Override
 	public ArrayList<ErrorElement> getErrorList() {
 		return this.listOfErrors;
 	}
