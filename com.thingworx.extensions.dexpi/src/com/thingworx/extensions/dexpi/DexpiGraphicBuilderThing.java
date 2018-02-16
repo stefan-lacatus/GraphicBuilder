@@ -2,17 +2,25 @@ package com.thingworx.extensions.dexpi;
 
 import com.thingworx.communications.client.ConnectedThingClient;
 import com.thingworx.communications.client.things.VirtualThing;
-import com.thingworx.extensions.dexpi.old.SvgImageFactory;
+import com.thingworx.metadata.FieldDefinition;
 import com.thingworx.metadata.annotations.ThingworxServiceDefinition;
 import com.thingworx.metadata.annotations.ThingworxServiceParameter;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
+import com.thingworx.metadata.collections.FieldDefinitionCollection;
+import com.thingworx.types.BaseTypes;
+import com.thingworx.types.InfoTable;
+import com.thingworx.types.collections.AspectCollection;
+import com.thingworx.types.collections.ValueCollection;
 import org.dexpi.pid.imaging.*;
+import org.dexpi.pid.xml.Equipment;
+import org.dexpi.pid.xml.GenericAttribute;
+import org.dexpi.pid.xml.GenericAttributes;
+import org.dexpi.pid.xml.PlantItem;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,6 +36,38 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         super(name, description, identifier, client);
         super.initializeFromAnnotations();
 
+        FieldDefinitionCollection dexpiGenericAttr = new FieldDefinitionCollection();
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Name", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Value", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("DefaultValue", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Units", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Format", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("AttributeUri", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("ValueUri", BaseTypes.STRING));
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("UnitsUri", BaseTypes.STRING));
+        this.defineDataShapeDefinition("DexpiGenericAttribute", dexpiGenericAttr);
+
+
+        // generate information about the dexpi info datashape
+        FieldDefinitionCollection dexpiDef = new FieldDefinitionCollection();
+        dexpiDef.addFieldDefinition(new FieldDefinition("TagName", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Specification", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("SpecificationUri", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("StockNumber", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("ComponentName", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("ComponentType", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("ComponentClass", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("ComponentClassUri", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Revision", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("RevisionUri", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Status", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("StatusUri", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Id", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Purpose", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Attributes", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiGenericAttribute")));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Subcomponents", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiEquipmentInfo")));
+
+        this.defineDataShapeDefinition("DexpiEquipmentInfo", dexpiDef);
     }
 
     @ThingworxServiceDefinition(
@@ -77,27 +117,98 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
 
         JaxbErrorLogRepository errorRep = new JaxbErrorLogRepository(tempFilePath.toFile());
         InputRepository inputRep = new JaxbInputRepository(new ByteArrayInputStream(data));
-        if(USE_DEXPI_IMPL) {
-            GraphicFactory gFac = new ImageFactorySvg();
-            GraphicBuilder gBuilder = new GraphicBuilder(inputRep, gFac, errorRep);
+        GraphicFactory gFac = new ImageFactorySvg();
+        GraphicBuilder gBuilder = new GraphicBuilder(inputRep, gFac, errorRep);
 
-            gBuilder.buildImage(resolutionX, null);
+        gBuilder.buildImage(resolutionX, null);
 
-            logger.info("Generator finished.");
-            return ((ImageFactorySvg) gFac).getImageSvg().toByteArray();
-        } else {
-            StringWriter writer = new StringWriter();
+        logger.info("Generator finished.");
+        return ((ImageFactorySvg) gFac).getImageSvg().toByteArray();
+    }
 
-            GraphicFactory gFac = new SvgImageFactory(writer);
-            GraphicBuilder gBuilder = new GraphicBuilder(inputRep, gFac, errorRep);
+    @ThingworxServiceDefinition(
+            name = "GetEquipmentInformation", description = "Uses the dexpi file as the source for the plant schema")
+    @ThingworxServiceResult(
+            name = "result", description = "", baseType = "INFOTABLE", aspects = {"dataShape:DexpiEquipmentInfo"})
+    public InfoTable GetEquipmentInformation(@ThingworxServiceParameter(
+            name = "data", description = "", baseType = "BLOB") byte[] data) throws Exception {
+        logger.info("Starting generator for dexpi file info.");
 
-            gBuilder.buildImage(resolutionX, "test.svg");
-            logger.info(gBuilder.generateHTMLimageMap("TestImageMap"));
+        InfoTable result = new InfoTable(this.getDataShapeDefinition("DexpiEquipmentInfo"));
 
+        JaxbInputRepository inputRep = new JaxbInputRepository(new ByteArrayInputStream(data));
 
-            logger.info("Tester finished.");
-            return writer.toString().getBytes("UTF-8");
+        for (Object object : inputRep.getPlantModel().presentationOrShapeCatalogueOrDrawing) {
+            if (object instanceof PlantItem) {
+                if (object instanceof Equipment) {
+                    Equipment equipment = (Equipment) object;
+                    logger.info("Parsing equipment " + equipment.getComponentName() + " " + equipment.getTagName());
+                    ValueCollection collection = parseEquipment(equipment);
+                    result.addRow(collection);
+                }
+            }
         }
+        logger.info("Finished generation");
+        return result;
+    }
 
+    /**
+     * Transforms a equipment into a value collection using the dexpiEquipmentDatashape
+     *
+     * @param equipment Equipment to parse
+     * @return an infotable with the equipment information
+     * @throws Exception
+     */
+    private ValueCollection parseEquipment(Equipment equipment) throws Exception {
+        ValueCollection collection = new ValueCollection();
+        collection.SetStringValue("TagName", equipment.getTagName());
+        collection.SetStringValue("Specification", equipment.getSpecification());
+        collection.SetStringValue("SpecificationUri", equipment.getSpecificationURI());
+        collection.SetStringValue("StockNumber", equipment.getStockNumber());
+        collection.SetStringValue("ComponentName", equipment.getComponentName());
+        collection.SetStringValue("ComponentType", equipment.getComponentType());
+        collection.SetStringValue("ComponentClass", equipment.getComponentClass());
+        collection.SetStringValue("ComponentClassUri", equipment.getComponentClassURI());
+        collection.SetStringValue("Revision", equipment.getRevision());
+        collection.SetStringValue("RevisionUri", equipment.getRevisionURI());
+        collection.SetStringValue("Status", equipment.getStatus());
+        collection.SetStringValue("StatusUri", equipment.getStatusURI());
+        collection.SetStringValue("Id", equipment.getID());
+        collection.SetStringValue("Purpose", equipment.getPurpose());
+        // look through all the GenericAttributes of this equipment
+        for (Object child : equipment.getPresentationOrExtentOrPersistentID()) {
+            if (child instanceof GenericAttributes) {
+                logger.info("Parsing equipment attributes with set " + ((GenericAttributes) child).getSet());
+                if (((GenericAttributes) child).getSet().equals("DexpiAttributes")) {
+                    InfoTable attrs = new InfoTable(this.getDataShapeDefinition("DexpiGenericAttribute"));
+                    // transfrom the Generic Attributes into infotable rows
+                    for (Object attrChild : ((GenericAttributes) child).getContent()) {
+                        if (attrChild instanceof GenericAttribute) {
+                            GenericAttribute genericAttr = (GenericAttribute) attrChild;
+                            ValueCollection attrCollection = new ValueCollection();
+                            attrCollection.SetStringValue("Name", genericAttr.getName());
+                            attrCollection.SetStringValue("Value", genericAttr.getValue());
+                            attrCollection.SetStringValue("DefaultValue", genericAttr.getDefaultValue());
+                            attrCollection.SetStringValue("Units", genericAttr.getUnits());
+                            attrCollection.SetStringValue("Format", genericAttr.getFormat());
+                            attrCollection.SetStringValue("AttributeUri", genericAttr.getAttributeURI());
+                            attrCollection.SetStringValue("UnitsUri", genericAttr.getUnitsURI());
+                            attrCollection.SetStringValue("ValueUri", genericAttr.getValueURI());
+                            attrs.addRow(attrCollection);
+                        }
+                    }
+                    collection.SetInfoTableValue("Attributes", attrs);
+                }
+            }
+        }
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        for (Object child : equipment.getDisciplineOrMinimumDesignPressureOrMaximumDesignPressure()) {
+            if (child instanceof Equipment) {
+                children.addRow(parseEquipment((Equipment) child));
+            }
+        }
+        collection.SetInfoTableValue("Subcomponents", children);
+
+        return collection;
     }
 }
