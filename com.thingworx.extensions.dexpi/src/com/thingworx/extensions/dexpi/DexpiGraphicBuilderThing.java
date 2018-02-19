@@ -144,12 +144,64 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
                     logger.info("Parsing equipment " + equipment.getComponentName() + " " + equipment.getTagName());
                     ValueCollection collection = parseEquipment(equipment);
                     result.addRow(collection);
+                } else if(object instanceof PipingNetworkSystem) {
+                    PipingNetworkSystem pipingNetworkSystem = (PipingNetworkSystem) object;
+
+                    logger.info("Parsing pipingNetwork system " + pipingNetworkSystem.getComponentName() + " " + pipingNetworkSystem.getTagName());
+                    ValueCollection collection = parsePipingNetworkSystem(pipingNetworkSystem);
+                    result.addRow(collection);
+
                 }
             }
         }
         logger.info("Finished generation");
         return result;
     }
+
+    /**
+     * Transforms a pipingNetworkSystem into a value collection using the dexpiEquipmentDatashape
+     *
+     * @param pipingNetworkSystem pipingNetworkSystem to parse
+     * @return an infotable with the equipment information
+     * @throws Exception
+     */
+    private ValueCollection parsePipingNetworkSystem(PipingNetworkSystem pipingNetworkSystem) throws Exception {
+        ValueCollection collection = parseGenericPlantElementWithAttributes(pipingNetworkSystem);
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        for (Object child : pipingNetworkSystem.getNominalDiameterOrInsideDiameterOrOutsideDiameter()) {
+            if (child instanceof PipingNetworkSystem) {
+                children.addRow(parsePipingNetworkSystem((PipingNetworkSystem) child));
+            } else if (child instanceof PipingNetworkSegment) {
+                children.addRow(parsePipingNetworkSegment((PipingNetworkSegment) child));
+            }
+        }
+        collection.SetInfoTableValue("Subcomponents", children);
+
+        return collection;
+    }
+
+    /**
+     * Transforms a pipingNetworkSegment into a value collection using the dexpiEquipmentDatashape
+     *
+     * @param pipingNetworkSegment pipingNetworkSegment to parse
+     * @return an infotable with the equipment information
+     * @throws Exception
+     */
+    private ValueCollection parsePipingNetworkSegment(PipingNetworkSegment pipingNetworkSegment) throws Exception {
+        ValueCollection collection = parseGenericPlantElementWithAttributes(pipingNetworkSegment);
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        for (Object child : pipingNetworkSegment.getNominalDiameterOrInsideDiameterOrOutsideDiameter()) {
+            if (child instanceof PipingNetworkSegment) {
+                children.addRow(parsePipingNetworkSegment((PipingNetworkSegment) child));
+            } else if (child instanceof PipingComponent) {
+                children.addRow(parseGenericPlantElementWithAttributes((PipingComponent) child));
+            }
+        }
+        collection.SetInfoTableValue("Subcomponents", children);
+
+        return collection;
+    }
+
 
     /**
      * Transforms a equipment into a value collection using the dexpiEquipmentDatashape
