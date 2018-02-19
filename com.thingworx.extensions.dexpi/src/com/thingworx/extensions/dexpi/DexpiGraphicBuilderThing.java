@@ -12,15 +12,13 @@ import com.thingworx.types.InfoTable;
 import com.thingworx.types.collections.AspectCollection;
 import com.thingworx.types.collections.ValueCollection;
 import org.dexpi.pid.imaging.*;
-import org.dexpi.pid.xml.Equipment;
-import org.dexpi.pid.xml.GenericAttribute;
-import org.dexpi.pid.xml.GenericAttributes;
-import org.dexpi.pid.xml.PlantItem;
+import org.dexpi.pid.xml.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.lang.String;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,6 +62,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         dexpiDef.addFieldDefinition(new FieldDefinition("StatusUri", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("Id", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("Purpose", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("ElementTagName", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("Attributes", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiGenericAttribute")));
         dexpiDef.addFieldDefinition(new FieldDefinition("Subcomponents", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiEquipmentInfo")));
 
@@ -160,7 +159,24 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
      * @throws Exception
      */
     private ValueCollection parseEquipment(Equipment equipment) throws Exception {
+        ValueCollection collection = parseGenericPlantElementWithAttributes(equipment);
+        collection.SetStringValue("Purpose", equipment.getPurpose());
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        for (Object child : equipment.getDisciplineOrMinimumDesignPressureOrMaximumDesignPressure()) {
+            if (child instanceof Equipment) {
+                children.addRow(parseEquipment((Equipment) child));
+            } else if (child instanceof Nozzle) {
+                children.addRow(parseGenericPlantElementWithAttributes((Nozzle) child));
+            }
+        }
+        collection.SetInfoTableValue("Subcomponents", children);
+
+        return collection;
+    }
+
+    private ValueCollection parseGenericPlantElementWithAttributes(PlantItem equipment) throws Exception {
         ValueCollection collection = new ValueCollection();
+        collection.SetStringValue("ElementTagName", equipment.getClass().getSimpleName());
         collection.SetStringValue("TagName", equipment.getTagName());
         collection.SetStringValue("Specification", equipment.getSpecification());
         collection.SetStringValue("SpecificationUri", equipment.getSpecificationURI());
@@ -174,12 +190,11 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         collection.SetStringValue("Status", equipment.getStatus());
         collection.SetStringValue("StatusUri", equipment.getStatusURI());
         collection.SetStringValue("Id", equipment.getID());
-        collection.SetStringValue("Purpose", equipment.getPurpose());
         // look through all the GenericAttributes of this equipment
         for (Object child : equipment.getPresentationOrExtentOrPersistentID()) {
             if (child instanceof GenericAttributes) {
                 logger.info("Parsing equipment attributes with set " + ((GenericAttributes) child).getSet());
-                if (((GenericAttributes) child).getSet().equals("DexpiAttributes")) {
+                if ("DexpiAttributes".equals(((GenericAttributes) child).getSet())) {
                     InfoTable attrs = new InfoTable(this.getDataShapeDefinition("DexpiGenericAttribute"));
                     // transfrom the Generic Attributes into infotable rows
                     for (Object attrChild : ((GenericAttributes) child).getContent()) {
@@ -201,14 +216,8 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
                 }
             }
         }
-        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
-        for (Object child : equipment.getDisciplineOrMinimumDesignPressureOrMaximumDesignPressure()) {
-            if (child instanceof Equipment) {
-                children.addRow(parseEquipment((Equipment) child));
-            }
-        }
-        collection.SetInfoTableValue("Subcomponents", children);
-
         return collection;
     }
+
+
 }
