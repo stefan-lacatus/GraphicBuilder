@@ -64,9 +64,9 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         dexpiDef.addFieldDefinition(new FieldDefinition("Purpose", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("ElementTagName", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("Attributes", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiGenericAttribute")));
-        dexpiDef.addFieldDefinition(new FieldDefinition("Subcomponents", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiEquipmentInfo")));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Subcomponents", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiObjectInfo")));
 
-        this.defineDataShapeDefinition("DexpiEquipmentInfo", dexpiDef);
+        this.defineDataShapeDefinition("DexpiObjectInfo", dexpiDef);
     }
 
     @ThingworxServiceDefinition(
@@ -128,12 +128,12 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
     @ThingworxServiceDefinition(
             name = "GetEquipmentInformation", description = "Uses the dexpi file as the source for the plant schema")
     @ThingworxServiceResult(
-            name = "result", description = "", baseType = "INFOTABLE", aspects = {"dataShape:DexpiEquipmentInfo"})
+            name = "result", description = "", baseType = "INFOTABLE", aspects = {"dataShape:DexpiObjectInfo"})
     public InfoTable GetEquipmentInformation(@ThingworxServiceParameter(
             name = "data", description = "", baseType = "BLOB") byte[] data) throws Exception {
         logger.info("Starting generator for dexpi file info.");
 
-        InfoTable result = new InfoTable(this.getDataShapeDefinition("DexpiEquipmentInfo"));
+        InfoTable result = new InfoTable(this.getDataShapeDefinition("DexpiObjectInfo"));
 
         JaxbInputRepository inputRep = new JaxbInputRepository(new ByteArrayInputStream(data));
 
@@ -167,7 +167,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
      */
     private ValueCollection parsePipingNetworkSystem(PipingNetworkSystem pipingNetworkSystem) throws Exception {
         ValueCollection collection = parseGenericPlantElementWithAttributes(pipingNetworkSystem);
-        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiObjectInfo")));
         for (Object child : pipingNetworkSystem.getNominalDiameterOrInsideDiameterOrOutsideDiameter()) {
             if (child instanceof PipingNetworkSystem) {
                 children.addRow(parsePipingNetworkSystem((PipingNetworkSystem) child));
@@ -189,7 +189,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
      */
     private ValueCollection parsePipingNetworkSegment(PipingNetworkSegment pipingNetworkSegment) throws Exception {
         ValueCollection collection = parseGenericPlantElementWithAttributes(pipingNetworkSegment);
-        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiObjectInfo")));
         for (Object child : pipingNetworkSegment.getNominalDiameterOrInsideDiameterOrOutsideDiameter()) {
             if (child instanceof PipingNetworkSegment) {
                 children.addRow(parsePipingNetworkSegment((PipingNetworkSegment) child));
@@ -213,7 +213,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
     private ValueCollection parseEquipment(Equipment equipment) throws Exception {
         ValueCollection collection = parseGenericPlantElementWithAttributes(equipment);
         collection.SetStringValue("Purpose", equipment.getPurpose());
-        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiEquipmentInfo")));
+        InfoTable children = new InfoTable((this.getDataShapeDefinition("DexpiObjectInfo")));
         for (Object child : equipment.getDisciplineOrMinimumDesignPressureOrMaximumDesignPressure()) {
             if (child instanceof Equipment) {
                 children.addRow(parseEquipment((Equipment) child));
