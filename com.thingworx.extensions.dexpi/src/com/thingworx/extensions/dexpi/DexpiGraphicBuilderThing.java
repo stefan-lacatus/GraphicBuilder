@@ -35,6 +35,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         super.initializeFromAnnotations();
 
         FieldDefinitionCollection dexpiGenericAttr = new FieldDefinitionCollection();
+        dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Set", BaseTypes.STRING));
         dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Name", BaseTypes.STRING));
         dexpiGenericAttr.addFieldDefinition(new FieldDefinition("Value", BaseTypes.STRING));
         dexpiGenericAttr.addFieldDefinition(new FieldDefinition("DefaultValue", BaseTypes.STRING));
@@ -141,13 +142,13 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
             if (object instanceof PlantItem) {
                 if (object instanceof Equipment) {
                     Equipment equipment = (Equipment) object;
-                    logger.info("Parsing equipment " + equipment.getComponentName() + " " + equipment.getTagName());
+                    logger.info("Parsing equipment " + equipment.getComponentName() + " " + equipment.getTagName() + " with ID " + equipment.getID());
                     ValueCollection collection = parseEquipment(equipment);
                     result.addRow(collection);
-                } else if(object instanceof PipingNetworkSystem) {
+                } else if (object instanceof PipingNetworkSystem) {
                     PipingNetworkSystem pipingNetworkSystem = (PipingNetworkSystem) object;
 
-                    logger.info("Parsing pipingNetwork system " + pipingNetworkSystem.getComponentName() + " " + pipingNetworkSystem.getTagName());
+                    logger.info("Parsing pipingNetwork system " + pipingNetworkSystem.getComponentName() + " " + pipingNetworkSystem.getTagName() + " with ID " + pipingNetworkSystem.getID());
                     ValueCollection collection = parsePipingNetworkSystem(pipingNetworkSystem);
                     result.addRow(collection);
 
@@ -195,6 +196,8 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
                 children.addRow(parsePipingNetworkSegment((PipingNetworkSegment) child));
             } else if (child instanceof PipingComponent) {
                 children.addRow(parseGenericPlantElementWithAttributes((PipingComponent) child));
+            } else if (child instanceof Equipment) {
+                children.addRow(parseEquipment((Equipment) child));
             }
         }
         collection.SetInfoTableValue("Subcomponents", children);
@@ -242,32 +245,35 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         collection.SetStringValue("Status", equipment.getStatus());
         collection.SetStringValue("StatusUri", equipment.getStatusURI());
         collection.SetStringValue("Id", equipment.getID());
+        InfoTable attrs = new InfoTable(this.getDataShapeDefinition("DexpiGenericAttribute"));
+
         // look through all the GenericAttributes of this equipment
         for (Object child : equipment.getPresentationOrExtentOrPersistentID()) {
             if (child instanceof GenericAttributes) {
-                logger.info("Parsing equipment attributes with set " + ((GenericAttributes) child).getSet());
-                if ("DexpiAttributes".equals(((GenericAttributes) child).getSet())) {
-                    InfoTable attrs = new InfoTable(this.getDataShapeDefinition("DexpiGenericAttribute"));
-                    // transfrom the Generic Attributes into infotable rows
-                    for (Object attrChild : ((GenericAttributes) child).getContent()) {
-                        if (attrChild instanceof GenericAttribute) {
-                            GenericAttribute genericAttr = (GenericAttribute) attrChild;
-                            ValueCollection attrCollection = new ValueCollection();
-                            attrCollection.SetStringValue("Name", genericAttr.getName());
-                            attrCollection.SetStringValue("Value", genericAttr.getValue());
-                            attrCollection.SetStringValue("DefaultValue", genericAttr.getDefaultValue());
-                            attrCollection.SetStringValue("Units", genericAttr.getUnits());
-                            attrCollection.SetStringValue("Format", genericAttr.getFormat());
-                            attrCollection.SetStringValue("AttributeUri", genericAttr.getAttributeURI());
-                            attrCollection.SetStringValue("UnitsUri", genericAttr.getUnitsURI());
-                            attrCollection.SetStringValue("ValueUri", genericAttr.getValueURI());
-                            attrs.addRow(attrCollection);
-                        }
+                //  logger.info("Parsing equipment attributes with set " + ((GenericAttributes) child).getSet());
+                String setName = ((GenericAttributes) child).getSet();
+                // transfrom the Generic Attributes into infotable rows
+                for (Object attrChild : ((GenericAttributes) child).getContent()) {
+                    if (attrChild instanceof GenericAttribute) {
+                        GenericAttribute genericAttr = (GenericAttribute) attrChild;
+                        ValueCollection attrCollection = new ValueCollection();
+                        attrCollection.SetStringValue("Name", genericAttr.getName());
+                        attrCollection.SetStringValue("Value", genericAttr.getValue());
+                        attrCollection.SetStringValue("DefaultValue", genericAttr.getDefaultValue());
+                        attrCollection.SetStringValue("Units", genericAttr.getUnits());
+                        attrCollection.SetStringValue("Format", genericAttr.getFormat());
+                        attrCollection.SetStringValue("AttributeUri", genericAttr.getAttributeURI());
+                        attrCollection.SetStringValue("UnitsUri", genericAttr.getUnitsURI());
+                        attrCollection.SetStringValue("ValueUri", genericAttr.getValueURI());
+                        attrCollection.SetStringValue("Set", setName);
+                        attrs.addRow(attrCollection);
                     }
-                    collection.SetInfoTableValue("Attributes", attrs);
                 }
+
             }
         }
+        collection.SetInfoTableValue("Attributes", attrs);
+
         return collection;
     }
 
