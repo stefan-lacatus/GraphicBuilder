@@ -1125,7 +1125,7 @@ public class JaxbInputRepository implements InputRepository {
 						// subElement.setReference(pidElement.getReference());
 						subElement.setLineNumber(this.locator.getLineNumber(pidElement.getID()));
 						pidElement.addSubElement(piAddDrawableElements(plantItem, subElement));
-						pidElement.setID(plantItemShape.getID());
+						//pidElement.setID(plantItemShape.getID());
 						break;
 						// subElement has ID+linenumber of original PI
 						// element has ID+LineNumber of ShapeCatalogueElement

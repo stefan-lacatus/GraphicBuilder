@@ -822,9 +822,8 @@ public class ImageFactory_SVG implements GraphicFactory {
 	@Override
 	public void addImageMapElement(PidElement pidElement) {
 
-		if (pidElement.getComponentClass() != null) {
-			if (pidElement.getExtent() != null && pidElement.getType() == null
-					&& pidElement.getComponentClass().contains("Line") == false) {
+		if (true) {
+			if (pidElement.getExtent() != null && pidElement.getType() == null) {
 
 				double[] extent = pidElement.getOldExtent();
 
@@ -871,7 +870,7 @@ public class ImageFactory_SVG implements GraphicFactory {
 				/* Add Object to imageMapObjects for HTML-File */
 
 				this.imageMapObjects.add(new ImageMapObject(startX, startY, width, height, id, componentName));
-			} else if (pidElement.getType() != null || pidElement.getComponentClass().contains("Line") == true) {
+			} else if (pidElement.getType() != null) {
 				// TODO somehow this is not required?
 			}
 		}

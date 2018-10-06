@@ -15,6 +15,7 @@ import org.dexpi.pid.imaging.*;
 import org.dexpi.pid.xml.*;
 
 import javax.imageio.ImageIO;
+import javax.xml.bind.JAXBElement;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -46,6 +47,10 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         dexpiGenericAttr.addFieldDefinition(new FieldDefinition("UnitsUri", BaseTypes.STRING));
         this.defineDataShapeDefinition("DexpiGenericAttribute", dexpiGenericAttr);
 
+        FieldDefinitionCollection dexpiAssociationDatashape = new FieldDefinitionCollection();
+        dexpiAssociationDatashape.addFieldDefinition(new FieldDefinition("type", BaseTypes.STRING));
+        dexpiAssociationDatashape.addFieldDefinition(new FieldDefinition("itemId", BaseTypes.STRING));
+        this.defineDataShapeDefinition("DexpiAssociationDataShape", dexpiAssociationDatashape);
 
         // generate information about the dexpi info datashape
         FieldDefinitionCollection dexpiDef = new FieldDefinitionCollection();
@@ -64,6 +69,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         dexpiDef.addFieldDefinition(new FieldDefinition("Id", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("Purpose", BaseTypes.STRING));
         dexpiDef.addFieldDefinition(new FieldDefinition("ElementTagName", BaseTypes.STRING));
+        dexpiDef.addFieldDefinition(new FieldDefinition("Associations", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiAssociationDataShape")));
         dexpiDef.addFieldDefinition(new FieldDefinition("Attributes", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiGenericAttribute")));
         dexpiDef.addFieldDefinition(new FieldDefinition("Subcomponents", BaseTypes.INFOTABLE, AspectCollection.fromString("dataShape:DexpiObjectInfo")));
 
@@ -137,6 +143,11 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         InfoTable result = new InfoTable(this.getDataShapeDefinition("DexpiObjectInfo"));
 
         JaxbInputRepository inputRep = new JaxbInputRepository(new ByteArrayInputStream(data));
+
+        for (PlantStructureItem item : inputRep.getPlantModel().getPlantStructureItem()) {
+            // add items for the plant structure items
+            result.addRow(parseGenericPlantElementWithAttributes(item));
+        }
 
         for (Object object : inputRep.getPlantModel().presentationOrShapeCatalogueOrDrawing) {
             if (object instanceof PlantItem) {
@@ -246,6 +257,7 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
         collection.SetStringValue("StatusUri", equipment.getStatusURI());
         collection.SetStringValue("Id", equipment.getID());
         InfoTable attrs = new InfoTable(this.getDataShapeDefinition("DexpiGenericAttribute"));
+        InfoTable associations = new InfoTable(this.getDataShapeDefinition("DexpiAssociationDataShape"));
 
         // look through all the GenericAttributes of this equipment
         for (Object child : equipment.getPresentationOrExtentOrPersistentID()) {
@@ -269,11 +281,17 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
                         attrs.addRow(attrCollection);
                     }
                 }
-
+            } else if (child instanceof JAXBElement && ((JAXBElement) child).getValue() instanceof Association) {
+                Association association = ((Association) ((JAXBElement) child).getValue());
+                ValueCollection associationValueCollection = new ValueCollection();
+                associationValueCollection.SetStringValue("type", association.getType());
+                associationValueCollection.SetStringValue("itemId", ((PlantItem) association.getItemID()).getID());
+                associations.addRow(associationValueCollection);
             }
         }
-        collection.SetInfoTableValue("Attributes", attrs);
 
+        collection.SetInfoTableValue("Attributes", attrs);
+        collection.SetInfoTableValue("Associations", associations);
         return collection;
     }
 

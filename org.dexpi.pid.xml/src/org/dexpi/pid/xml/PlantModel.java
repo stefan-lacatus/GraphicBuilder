@@ -1,7 +1,7 @@
 //
 // Diese Datei wurde mit der JavaTM Architecture for XML Binding(JAXB) Reference Implementation, v2.2.7 generiert 
 // Siehe <a href="http://java.sun.com/xml/jaxb">http://java.sun.com/xml/jaxb</a> 
-// Änderungen an dieser Datei gehen bei einer Neukompilierung des Quellschemas verloren. 
+// ï¿½nderungen an dieser Datei gehen bei einer Neukompilierung des Quellschemas verloren. 
 // Generiert: 2013.10.22 um 01:08:11 PM CEST 
 //
 
@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>
- * Java-Klasse für anonymous complex type.
+ * Java-Klasse fï¿½r anonymous complex type.
  * 
  * <p>
  * Das folgende Schemafragment gibt den erwarteten Content an, der in dieser
@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element ref="{}PlantInformation"/>
+ *         &lt;element ref="{}PlantStructureItem" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="RDLService" maxOccurs="unbounded" minOccurs="0">
  *           &lt;complexType>
  *             &lt;complexContent>
@@ -72,8 +73,13 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = { "plantInformation", "rdlService", "extent",
-		"presentationOrShapeCatalogueOrDrawing" })
+@XmlType(name = "", propOrder = {
+    "plantInformation",
+    "plantStructureItem",
+    "rdlService",
+    "extent",
+    "presentationOrShapeCatalogueOrDrawing"
+})
 @XmlRootElement(name = "PlantModel")
 public class PlantModel extends GeneratedClass {
 
@@ -81,6 +87,8 @@ public class PlantModel extends GeneratedClass {
 	protected PlantInformation plantInformation;
 	@XmlElement(name = "RDLService")
 	protected List<PlantModel.RDLService> rdlService;
+	@XmlElement(name = "PlantStructureItem")
+	protected List<PlantStructureItem> plantStructureItem;
 	@XmlElement(name = "Extent", required = true)
 	protected Extent extent;
 	@XmlElementRefs({
@@ -127,6 +135,35 @@ public class PlantModel extends GeneratedClass {
 	 */
 	public void setPlantInformation(PlantInformation value) {
 		this.plantInformation = value;
+	}
+
+	/**
+	 * Gets the value of the plantStructureItem property.
+	 *
+	 * <p>
+	 * This accessor method returns a reference to the live list,
+	 * not a snapshot. Therefore any modification you make to the
+	 * returned list will be present inside the JAXB object.
+	 * This is why there is not a <CODE>set</CODE> method for the plantStructureItem property.
+	 *
+	 * <p>
+	 * For example, to add a new item, do as follows:
+	 * <pre>
+	 *    getPlantStructureItem().add(newItem);
+	 * </pre>
+	 *
+	 *
+	 * <p>
+	 * Objects of the following type(s) are allowed in the list
+	 * {@link PlantStructureItem }
+	 *
+	 *
+	 */
+	public List<PlantStructureItem> getPlantStructureItem() {
+		if (plantStructureItem == null) {
+			plantStructureItem = new ArrayList<PlantStructureItem>();
+		}
+		return this.plantStructureItem;
 	}
 
 	/**
@@ -227,7 +264,7 @@ public class PlantModel extends GeneratedClass {
 
 	/**
 	 * <p>
-	 * Java-Klasse für anonymous complex type.
+	 * Java-Klasse fï¿½r anonymous complex type.
 	 * 
 	 * <p>
 	 * Das folgende Schemafragment gibt den erwarteten Content an, der in dieser
