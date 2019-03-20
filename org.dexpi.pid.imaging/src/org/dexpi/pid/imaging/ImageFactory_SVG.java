@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JPanel;
@@ -609,25 +610,24 @@ public class ImageFactory_SVG implements GraphicFactory {
 
 	/**
 	 * adds text to the image
-	 * 
-	 * @param c
+	 *  @param c
 	 *            the color
 	 * @param position
 	 *            the position
 	 * @param extent
-	 *            the extent
+ *            the extent
 	 * @param textAngle
-	 *            the angle of the text
+*            the angle of the text
 	 * @param string
-	 *            the string
+*            the string
 	 * @param height
-	 *            the height of the text
-	 * @param Font
-	 *            the font
+*            the height of the text
+	 * @param font
+	 * @param justification
 	 */
 	@Override
 	public void addText(Color c, double[] position, double[] extent, double textAngle, String string, double height,
-			String font) {
+						String font, String justification) {
 		/*
 		 * check for linebreaks and call this function recursively with corrected
 		 * substrings
@@ -639,7 +639,7 @@ public class ImageFactory_SVG implements GraphicFactory {
 			for (int i = 0; i < subStrings.length; ++i) {
 				// System.out.println(subStrings[i]);
 				double[] newPos = position.clone();
-				addText(c, newPos, extent, textAngle, subStrings[i], height, font);
+				addText(c, newPos, extent, textAngle, subStrings[i], height, font, justification);
 				this.posY += height * 0.8; // 0.8 is a magic constant that is also
 											// used in JaxbInputRepository
 			}
@@ -675,6 +675,41 @@ public class ImageFactory_SVG implements GraphicFactory {
 		text.setAttributeNS(null, "font-family", font);
 		text.setAttributeNS(null, "font-size", "" + (height * FONT_SIZE_FACTOR * this.x));
 		text.setAttributeNS(null, "transform", rotation);
+
+		if(justification != null) {
+            String pattern = "(Left|Center|Right)(Top|Center|Bottom)";
+            Pattern r = Pattern.compile(pattern);
+            Matcher m = r.matcher(justification);
+            String horizontalAlign = "start";
+            String verticalAlign = "baseline";
+            if (m.find( )) {
+                switch (m.group(1)) {
+                    case "Left":
+                        horizontalAlign = "start";
+                        break;
+                    case "Center":
+                        horizontalAlign = "middle";
+                        break;
+                    case "Right":
+                        horizontalAlign = "end";
+                        break;
+                }
+                switch (m.group(2)) {
+                    case "Top":
+                        verticalAlign = "hanging";
+                        break;
+                    case "Center":
+                        verticalAlign = "middle";
+                        break;
+                    case "Bottom":
+                        verticalAlign = "baseline";
+                        break;
+                }
+            }
+            text.setAttributeNS(null, "text-anchor", horizontalAlign);
+            text.setAttributeNS(null, "alignment-baseline", verticalAlign);
+        }
+
 
 		Text textString = this.doc.createTextNode(string);
 		text.appendChild(textString);

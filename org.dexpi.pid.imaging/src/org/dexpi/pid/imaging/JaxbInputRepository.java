@@ -1376,6 +1376,7 @@ public class JaxbInputRepository implements InputRepository {
 			this.listOfErrors.add(eE);
 		}
 		textElement.setFont(text.getFont());
+		textElement.setJustification(text.getJustification());
 
 		if (text.getString() == null) {
 			ErrorElement eE_3 = new ErrorElement("" + text.getLineNumber());

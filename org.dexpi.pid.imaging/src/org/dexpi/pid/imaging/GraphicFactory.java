@@ -101,24 +101,23 @@ public interface GraphicFactory {
 
 	/**
 	 * adds text to the image
-	 * 
-	 * @param c
+	 *  @param c
 	 *            the color
 	 * @param position
 	 *            the position
-	 * @param extent
-	 *            the extent
-	 * @param textAngle
-	 *            the angle of the text
-	 * @param string
-	 *            the string
-	 * @param height
-	 *            the height of the text
-	 * @param Font
-	 *            the font
-	 */
-	public void addText(Color c, double position[], double extent[],
-			double textAngle, String string, double height, String Font);
+     * @param extent
+ *            the extent
+     * @param textAngle
+*            the angle of the text
+     * @param string
+*            the string
+     * @param height
+*            the height of the text
+     * @param Font
+     * @param justification
+     */
+	public void addText(Color c, double[] position, double[] extent,
+                        double textAngle, String string, double height, String Font, String justification);
 
 	/**
 	 * 

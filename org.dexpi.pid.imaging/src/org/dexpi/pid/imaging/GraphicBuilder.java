@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 
@@ -18,7 +17,6 @@ import org.dexpi.pid.imaging.drawableElements.ShapeElement;
 import org.dexpi.pid.imaging.drawableElements.TextElement;
 import org.dexpi.pid.imaging.pidElements.ErrorElement;
 import org.dexpi.pid.imaging.pidElements.PidElement;
-import org.dexpi.pid.xml.PlantItem;
 
 /**
  * Gets all relevant data from the input repository, checks it for errors and
@@ -1062,7 +1060,8 @@ public class GraphicBuilder {
 	 */
 	private void addTextElement(TextElement textElement) {
 		this.gFac.addText(textElement.getColor(), textElement.getPosition(), textElement.getExtent(),
-				textElement.getTextAngle(), textElement.getString(), textElement.getHeight(), textElement.getFont());
+				textElement.getTextAngle(), textElement.getString(), textElement.getHeight(), textElement.getFont(),
+				textElement.getJustification());
 	}
 
 	/**

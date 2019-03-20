@@ -21,6 +21,7 @@ public class TextElement extends DrawableElement {
 	double extent[];
 	double position[];
 	double textAngle;
+	String justification;
 
 	/**
 	 * Creates a text element.
@@ -39,9 +40,11 @@ public class TextElement extends DrawableElement {
 	 *            the extent (minX, maxX, minY, maxY)
 	 * @param textAngle
 	 *            the angle of the rotated text
+     * @param justification
+     *             The justification of the text
 	 */
 	public TextElement(String string, String font, double height, Color color,
-			double position[], double extent[], double textAngle) {
+			double position[], double extent[], double textAngle, String justification) {
 		this.string = string;
 		this.font = font;
 		this.height = height;
@@ -49,7 +52,7 @@ public class TextElement extends DrawableElement {
 		this.position = position;
 		this.extent = extent;
 		this.textAngle = textAngle;
-
+        this.justification = justification;
 	}
 	/**
 	 * Creates a new empty text element.
@@ -160,7 +163,15 @@ public class TextElement extends DrawableElement {
 
 	}
 
-	/**
+    public String getJustification() {
+        return justification;
+    }
+
+    public void setJustification(String justification) {
+        this.justification = justification;
+    }
+
+    /**
 	 * 
 	 * @return the extent (minX,maxX, minY, maxY)
 	 */
@@ -174,7 +185,7 @@ public class TextElement extends DrawableElement {
 	 */
 	public TextElement copy(){		
 		TextElement ret = new TextElement(this.string, this.font, this.height, this.color,
-				this.position.clone(), this.extent.clone(), this.textAngle);
+				this.position.clone(), this.extent.clone(), this.textAngle, this.justification);
 		
 		ret.setLineWeight(this.lineWeight);
 		return ret;

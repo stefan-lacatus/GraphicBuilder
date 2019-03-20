@@ -285,7 +285,9 @@ public class DexpiGraphicBuilderThing extends VirtualThing {
                 Association association = ((Association) ((JAXBElement) child).getValue());
                 ValueCollection associationValueCollection = new ValueCollection();
                 associationValueCollection.SetStringValue("type", association.getType());
-                associationValueCollection.SetStringValue("itemId", ((PlantItem) association.getItemID()).getID());
+                if(association.getItemID() != null) {
+                    associationValueCollection.SetStringValue("itemId", ((PlantItem) association.getItemID()).getID());
+                }
                 associations.addRow(associationValueCollection);
             }
         }

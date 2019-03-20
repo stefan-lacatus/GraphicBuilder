@@ -324,25 +324,24 @@ public class ImageFactory_PNG implements GraphicFactory {
 
 	/**
 	 * adds text to the image
-	 * 
-	 * @param c
+	 *  @param c
 	 *            the color
 	 * @param position
 	 *            the position
-	 * @param extent
-	 *            the extent
-	 * @param textAngle
-	 *            the angle of the text
-	 * @param string
-	 *            the string
-	 * @param height
-	 *            the height of the text
-	 * @param Font
-	 *            the font
-	 */
+     * @param extent
+ *            the extent
+     * @param textAngle
+*            the angle of the text
+     * @param string
+*            the string
+     * @param height
+*            the height of the text
+     * @param font
+     * @param justification
+     */
 	@Override
 	public void addText(Color c, double[] position, double[] extent, double textAngle, String string, double height,
-			String font) {
+                        String font, String justification) {
 		/*
 		 * check for linebreaks and call this function recursively with corrected
 		 * substrings
@@ -353,7 +352,7 @@ public class ImageFactory_PNG implements GraphicFactory {
 			for (int i = 0; i < subStrings.length; ++i) {
 				System.out.println(subStrings[i]);
 				double[] newPos = position.clone();
-				addText(c, newPos, extent, textAngle, subStrings[i], height, font);
+				addText(c, newPos, extent, textAngle, subStrings[i], height, font, justification);
 				this.posY += height * 0.8; // 0.8 is a magic constant that is also
 											// used in JaxbInputRepository
 			}
