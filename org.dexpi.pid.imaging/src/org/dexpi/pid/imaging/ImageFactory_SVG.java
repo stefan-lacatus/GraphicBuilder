@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -70,6 +71,7 @@ public class ImageFactory_SVG implements GraphicFactory {
 	// IFF this changes this pattern needs to be refactored with lookaheads and
 	// lookbehinds, so it is more general!
 	private static Pattern linebreakPattern = Pattern.compile("\r\n|\r|\n|&#xD;&#xA;|&#xD;|&#xA;");
+	private DecimalFormat df = new DecimalFormat("#.#####");
 
 	private static final double FONT_SIZE_FACTOR = 1.2;
 
@@ -285,8 +287,8 @@ public class ImageFactory_SVG implements GraphicFactory {
 		double cosPhi1;
 		double sinPhi1;
 
-		int xIntCoord[] = new int[xCoordinates.length];
-		int yIntCoord[] = new int[yCoordinates.length];
+		double xIntCoord[] = new double[xCoordinates.length];
+		double yIntCoord[] = new double[yCoordinates.length];
 
 		String color = convertAWTColorToSVGColor(c);
 
@@ -308,15 +310,15 @@ public class ImageFactory_SVG implements GraphicFactory {
 				sinPhi1 = this.sinPhi * this.cosTheta + this.cosPhi * this.sinTheta;
 			}
 			// transform back to kartesian coordinates
-			xIntCoord[i] = (int) ((this.scaleX * this.r * cosPhi1 - this.posX) * this.x);
-			yIntCoord[i] = (int) ((this.posY - this.scaleY * this.r * sinPhi1) * this.x);
+			xIntCoord[i] = ((this.scaleX * this.r * cosPhi1 - this.posX) * this.x);
+			yIntCoord[i] = ((this.posY - this.scaleY * this.r * sinPhi1) * this.x);
 		}
 
 		String points = "";
 		for (int i = 0; i < xIntCoord.length; ++i) {
-			points += xIntCoord[i];
+			points += df.format(xIntCoord[i]);
 			points += ",";
-			points += yIntCoord[i];
+			points += df.format(yIntCoord[i]);
 			points += " ";
 		}
 
@@ -359,8 +361,8 @@ public class ImageFactory_SVG implements GraphicFactory {
 		polygon.setAttributeNS(null, "stroke", color);
 		polygon.setAttributeNS(null, "stroke-width", "" + (lineWeight * this.s));
 
-		int xIntCoord[] = new int[xCoordinates.length];
-		int yIntCoord[] = new int[yCoordinates.length];
+		double xIntCoord[] = new double[xCoordinates.length];
+		double yIntCoord[] = new double[yCoordinates.length];
 
 		for (int i = 0; i < xCoordinates.length; i++) {
 			this.r = Math.sqrt(Math.pow(xCoordinates[i], 2) + Math.pow(yCoordinates[i], 2));
@@ -379,9 +381,9 @@ public class ImageFactory_SVG implements GraphicFactory {
 
 		String points = "";
 		for (int i = 0; i < xIntCoord.length; ++i) {
-			points += xIntCoord[i];
+			points += df.format(xIntCoord[i]);
 			points += ",";
-			points += yIntCoord[i];
+			points += df.format(yIntCoord[i]);
 			points += " ";
 		}
 
@@ -429,10 +431,10 @@ public class ImageFactory_SVG implements GraphicFactory {
 		ellipse.setAttributeNS(null, "stroke", color);
 		ellipse.setAttributeNS(null, "stroke-width", "" + (lineWeight * this.s));
 
-		int x1 = (int) ((this.scaleX * position[0] - this.posX) * this.x);
-		int y1 = (int) ((this.posY - this.scaleY * position[1]) * this.x);
-		int height = (int) (primAxis * this.scaleY * this.x);
-		int width = (int) (secAxis * this.scaleX * this.x);
+		double x1 = ((this.scaleX * position[0] - this.posX) * this.x);
+		double y1 =  ((this.posY - this.scaleY * position[1]) * this.x);
+		double height =  (primAxis * this.scaleY * this.x);
+		double width = (secAxis * this.scaleX * this.x);
 
 		double arcAngle;
 		if (endAngle < startAngle) {
@@ -448,9 +450,9 @@ public class ImageFactory_SVG implements GraphicFactory {
 
 		Coordinate endCoordinate = getLocationFromAngle(endAngle, r, newPos);
 
-		ellipsePath += "M" + x1 + " " + y1;
-		ellipsePath += " " + "A" + width + " " + height + " " + 0 + " " + 0 + " " + clockWise + " "
-				+ endCoordinate.getX() + " " + endCoordinate.getY();
+		ellipsePath += "M" + df.format(x1) + " " + df.format(y1);
+		ellipsePath += " " + "A" + df.format(width) + " " + height + " " + 0 + " " + 0 + " " + clockWise + " "
+				+ df.format(endCoordinate.getX()) + " " + df.format(endCoordinate.getY());
 
 		ellipse.setAttributeNS(null, "d", ellipsePath);
 
@@ -469,13 +471,13 @@ public class ImageFactory_SVG implements GraphicFactory {
 	private String getFullCirclePath(Coordinate[] points, double radius, int clockWise) {
 		String circlePath = "";
 
-		circlePath += "M" + points[0].getX() + " " + points[0].getY();
-		circlePath += " " + "A" + radius + " " + radius + " " + 0 + " " + 0 + " " + clockWise + " " + points[1].getX()
-				+ " " + points[1].getY();
-		circlePath += " " + 'A' + radius + " " + radius + " " + 0 + " " + 0 + " " + clockWise + " " + points[2].getX()
-				+ " " + points[2].getY();
-		circlePath += " " + 'A' + radius + " " + radius + " " + 0 + " " + 0 + " " + clockWise + " " + points[3].getX()
-				+ " " + points[3].getY();
+		circlePath += "M" + df.format(points[0].getX()) + " " + df.format(points[0].getY());
+		circlePath += " " + "A" + df.format(radius) + " " + df.format(radius) + " " + 0 + " " + 0 + " " + clockWise + " " + df.format(points[1].getX())
+				+ " " + df.format(points[1].getY());
+		circlePath += " " + 'A' + df.format(radius) + " " + df.format(radius) + " " + 0 + " " + 0 + " " + clockWise + " " + df.format(points[2].getX())
+				+ " " + df.format(points[2].getY());
+		circlePath += " " + 'A' + df.format(radius) + " " + df.format(radius) + " " + 0 + " " + 0 + " " + clockWise + " " + df.format(points[3].getX())
+				+ " " + df.format(points[3].getY());
 		circlePath += " " + 'Z';
 
 		return circlePath;
@@ -484,9 +486,9 @@ public class ImageFactory_SVG implements GraphicFactory {
 	private String getPartialCirclePath(Coordinate[] points, double radius, int clockWise) {
 		String circlePath = "";
 
-		circlePath += "M" + points[0].getX() + " " + points[0].getY();
-		circlePath += " " + 'A' + radius + " " + radius + " " + 0 + " " + 0 + " " + clockWise + " " + points[3].getX()
-				+ " " + points[3].getY();
+		circlePath += "M" + df.format(points[0].getX()) + " " + df.format(points[0].getY());
+		circlePath += " " + 'A' + df.format(radius) + " " + df.format(radius) + " " + 0 + " " + 0 + " " + clockWise + " " + df.format(points[3].getX())
+				+ " " + df.format(points[3].getY());
 
 		return circlePath;
 	}
@@ -508,22 +510,12 @@ public class ImageFactory_SVG implements GraphicFactory {
 			points[2] = getLocationFromAngle(start + degree * 2 / 3, radius, center);
 			points[3] = getLocationFromAngle(end, radius, center);
 
-			for (Coordinate coord : points) {
-				coord.setX(Math.round(coord.getX() * 1000.0) / 1000.0);
-				coord.setY(Math.round(coord.getY() * 1000.0) / 1000.0);
-			}
-
 			return this.getFullCirclePath(points, radius, (degree < 180) ? 0 : 1);
 		} else {
 			points[0] = getLocationFromAngle(start + 180, radius, center);
 			points[1] = getLocationFromAngle(start + degree / 3, radius, center);
 			points[2] = getLocationFromAngle(start + degree * 2 / 3, radius, center);
 			points[3] = getLocationFromAngle(end + 180, radius, center);
-
-			for (Coordinate coord : points) {
-				coord.setX(Math.round(coord.getX() * 1000.0) / 1000.0);
-				coord.setY(Math.round(coord.getY() * 1000.0) / 1000.0);
-			}
 
 			return this.getPartialCirclePath(points, radius, (degree < 180) ? 1 : 0);
 		}
@@ -569,7 +561,7 @@ public class ImageFactory_SVG implements GraphicFactory {
 
 		double x1 = 0;
 		double y1 = 0;
-		int r = (int) (radius * this.scaleX * this.x);
+		double r = (radius * this.scaleX * this.x);
 
 		// I know it's ugly to use this in this case but it spares a lot of
 		// refactoring
@@ -659,19 +651,19 @@ public class ImageFactory_SVG implements GraphicFactory {
 		minX = position[0] + height / 1.44 * Math.sin(textAngle);
 		minY = position[1];
 
-		int intPos[] = new int[2];
-		intPos[0] = (int) ((minX - this.posX) * this.x);
-		intPos[1] = (int) ((this.posY - minY) * this.x);
+		double positionPoint[] = new double[2];
+		positionPoint[0] = ((minX - this.posX) * this.x);
+		positionPoint[1] = ((this.posY - minY) * this.x);
 
 		// set Rotation Point
-		int rotPt[] = new int[2];
-		rotPt[0] = (int) ((position[0] - this.posX) * this.x);
-		rotPt[1] = (int) ((this.posY - position[1]) * this.x);
+		double rotationPoint[] = new double[2];
+		rotationPoint[0] = ((position[0] - this.posX) * this.x);
+		rotationPoint[1] = ((this.posY - position[1]) * this.x);
 
-		String rotation = "rotate(" + (-textAngle) + " " + rotPt[0] + "," + rotPt[1] + ")";
+		String rotation = "rotate(" + (-textAngle) + " " + df.format(rotationPoint[0]) + "," + df.format(rotationPoint[1]) + ")";
 
-		text.setAttributeNS(null, "x", "" + intPos[0]);
-		text.setAttributeNS(null, "y", "" + intPos[1]);
+		text.setAttributeNS(null, "x", "" + df.format(positionPoint[0]));
+		text.setAttributeNS(null, "y", "" + df.format(positionPoint[1]));
 		text.setAttributeNS(null, "font-family", font);
 		text.setAttributeNS(null, "font-size", "" + (height * FONT_SIZE_FACTOR * this.x));
 		text.setAttributeNS(null, "transform", rotation);
