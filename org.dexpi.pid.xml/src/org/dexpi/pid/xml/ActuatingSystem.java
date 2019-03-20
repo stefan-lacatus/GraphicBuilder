@@ -22,6 +22,7 @@ public class ActuatingSystem extends DrawableObjectThatInheritsDirectlyFromPlant
 	@XmlElementRefs({
 		@XmlElementRef(name = "LowerLimitDesignPressure", type = JAXBElement.class, required = false),
 		@XmlElementRef(name = "Discipline", type = JAXBElement.class, required = false),
+		@XmlElementRef(name = "ActuatingSystemComponent", type = ActuatingSystemComponent.class, required = false),
 		@XmlElementRef(name = "Nozzle", type = Nozzle.class, required = false),
 		@XmlElementRef(name = "MaximumDesignPressure", type = JAXBElement.class, required = false),
 		@XmlElementRef(name = "UpperLimitDesignTemperature", type = JAXBElement.class, required = false),
